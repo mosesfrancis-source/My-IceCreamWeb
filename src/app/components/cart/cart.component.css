@@ -1,0 +1,23 @@
+.cart-page {
+	display: grid;
+	gap: 1rem;
+}
+
+.cart-item {
+	background: var(--surface-strong);
+	border-radius: 0.9rem;
+	border: 1px solid var(--border);
+	padding: 1rem;
+}
+
+.actions {
+	display: flex;
+	gap: 0.6rem;
+	align-items: center;
+}
+
+.summary {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}

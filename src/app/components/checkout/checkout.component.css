@@ -1,0 +1,18 @@
+.checkout-page {
+	max-width: 620px;
+	display: grid;
+	gap: 0.9rem;
+	border: 1px solid var(--border);
+	border-radius: 1rem;
+	background: var(--surface-strong);
+	padding: 1.2rem;
+}
+
+label {
+	display: grid;
+	gap: 0.35rem;
+}
+
+.total {
+	font-size: 1.1rem;
+}

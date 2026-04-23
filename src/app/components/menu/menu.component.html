@@ -1,0 +1,20 @@
+<section class="menu-page">
+  <h2>Ice Cream Menu</h2>
+  <input
+    type="search"
+    [(ngModel)]="search"
+    (ngModelChange)="onSearchChange($event)"
+    placeholder="Search by flavor or tag"
+    aria-label="Search menu"
+  />
+
+  @if (filteredMenu$ | async; as items) {
+    <div class="grid">
+      <app-menu-item
+        *ngFor="let item of items"
+        [item]="item"
+        (add)="addToCart($event)"
+      ></app-menu-item>
+    </div>
+  }
+</section>

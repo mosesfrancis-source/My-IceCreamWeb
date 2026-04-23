@@ -1,0 +1,53 @@
+<section class="admin-page">
+  <h2>Manage Menu</h2>
+  @if (toastMessage) {
+    <p class="toast">{{ toastMessage }}</p>
+  }
+
+  <div class="form-grid">
+    <input type="text" [(ngModel)]="name" placeholder="Name" />
+    <input type="text" [(ngModel)]="flavor" placeholder="Flavor" />
+    <input type="number" min="0" step="0.25" [(ngModel)]="price" placeholder="Price" />
+    <input type="number" min="0" step="1" [(ngModel)]="quantity" placeholder="Quantity" />
+    <input type="url" [(ngModel)]="imageUrl" placeholder="Image URL (optional)" />
+    <label class="file-picker">
+      Upload image
+      <input type="file" accept="image/*" (change)="onImageFileSelected($event)" />
+    </label>
+    <small class="hint">Accepted: JPG, PNG, WEBP. Max size: 2MB.</small>
+    @if (fileError) {
+      <p class="file-error">{{ fileError }}</p>
+    }
+    @if (imagePreview) {
+      <div class="image-preview">
+        <img [src]="imagePreview" alt="Selected preview" />
+        <button type="button" (click)="clearSelectedImage()">Remove image</button>
+      </div>
+    }
+    <textarea [(ngModel)]="description" rows="2" placeholder="Description"></textarea>
+    <button type="button" (click)="addItem()">Add Item</button>
+  </div>
+
+  <ul>
+    <li *ngFor="let item of menu$ | async">
+      <div class="item-meta">
+        <img class="thumb" [src]="item.imageUrl" [alt]="item.name" title="Menu item image" />
+        <span>{{ item.name }} - ${{ item.price.toFixed(2) }}</span>
+        <small>Status: {{ item.inStock ? 'In stock' : 'Out of stock' }}</small>
+      </div>
+      <div class="item-actions">
+        <label>
+          Qty
+          <input
+            type="number"
+            min="0"
+            step="1"
+            [value]="item.quantity"
+            (change)="updateQuantity(item.id, $any($event.target).value)"
+          />
+        </label>
+        <button type="button" (click)="removeItem(item.id)">Delete</button>
+      </div>
+    </li>
+  </ul>
+</section>

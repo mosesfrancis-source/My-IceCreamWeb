@@ -1,0 +1,11 @@
+@if (order$ | async; as order) {
+  <section class="confirmation">
+    <h2>Order Confirmed</h2>
+    <p>Order #{{ order.id }} has been placed successfully.</p>
+    <p>Total: ${{ order.total.toFixed(2) }}</p>
+    <p>Pickup: {{ order.pickupDate }} at {{ order.pickupTime }}</p>
+    <a routerLink="/menu">Back to Menu</a>
+  </section>
+} @else {
+  <p>No recent order found. <a routerLink="/menu">Create a new order</a>.</p>
+}

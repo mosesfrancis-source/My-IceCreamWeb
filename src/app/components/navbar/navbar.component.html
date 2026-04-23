@@ -1,0 +1,49 @@
+<header class="navbar">
+  <div class="brand-stack">
+    <a class="brand" routerLink="/" aria-label="IceCream Hub home">
+      <span class="brand-logo-wrap">
+        <img class="brand-logo" src="/images/weblogo.png" alt="IceCream Hub logo" />
+      </span>
+      <span>IceCream Hub</span>
+    </a>
+
+    <div class="owner-badge" aria-label="Store owner">
+      <span class="owner-photo-wrap">
+        <img
+          ngSrc="/images/WhatsApp%20Image%202026-01-30%20at%201.11.21%20PM.jpeg"
+          width="52"
+          height="52"
+          class="owner-photo"
+          alt="Store owner portrait"
+          priority
+        />
+      </span>
+      <span class="owner-copy">
+        <span class="owner-label">Store owner</span>
+      </span>
+    </div>
+  </div>
+
+  <nav>
+    <a routerLink="/menu" routerLinkActive="active">Shop</a>
+    <a routerLink="/menu" routerLinkActive="active">Menu</a>
+    <a routerLink="/cart" routerLinkActive="active"
+      >Cart (<span>{{ itemCount$ | async }}</span
+      >)</a
+    >
+    <a routerLink="/schedule-pickup" routerLinkActive="active">Pickup</a>
+    <a routerLink="/admin" routerLinkActive="active">Admin</a>
+  </nav>
+
+  @if (user$ | async; as user) {
+    <div class="session">
+      <span>Hi, {{ user.name }}</span>
+      <button type="button" (click)="logout()">Logout</button>
+    </div>
+  } @else {
+    <div class="session">
+      <a routerLink="/login">Login</a>
+      <a routerLink="/register">Register</a>
+    </div>
+  }
+</header>

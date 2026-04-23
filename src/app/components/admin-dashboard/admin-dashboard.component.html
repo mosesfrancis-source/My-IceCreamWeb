@@ -1,0 +1,19 @@
+<section class="admin-page">
+  <h2>Admin Dashboard</h2>
+
+  <div class="kpis">
+    <article>
+      <h3>Menu Items</h3>
+      <p>{{ (menu$ | async)?.length || 0 }}</p>
+    </article>
+    <article>
+      <h3>Orders</h3>
+      <p>{{ (orders$ | async)?.length || 0 }}</p>
+    </article>
+  </div>
+
+  <div class="links">
+    <a routerLink="/admin/menu">Manage Menu</a>
+    <a routerLink="/admin/orders">Manage Orders</a>
+  </div>
+</section>

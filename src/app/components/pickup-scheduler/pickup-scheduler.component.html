@@ -1,0 +1,17 @@
+<section class="pickup-page">
+  <h2>Schedule Pickup</h2>
+
+  <label>
+    Pickup Date
+    <input type="date" [(ngModel)]="date" />
+  </label>
+
+  <label>
+    Pickup Time
+    <input type="time" [(ngModel)]="time" />
+  </label>
+
+  <button type="button" [disabled]="!date || !time" (click)="continueToCheckout()">
+    Continue To Checkout
+  </button>
+</section>

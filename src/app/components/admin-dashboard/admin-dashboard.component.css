@@ -1,0 +1,22 @@
+.admin-page {
+	display: grid;
+	gap: 1rem;
+}
+
+.kpis {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+	gap: 0.75rem;
+}
+
+.kpis article {
+	background: var(--surface-strong);
+	border: 1px solid var(--border);
+	border-radius: 0.9rem;
+	padding: 0.9rem;
+}
+
+.links {
+	display: flex;
+	gap: 0.75rem;
+}

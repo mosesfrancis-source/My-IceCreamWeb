@@ -1,0 +1,17 @@
+.admin-page {
+	display: grid;
+	gap: 0.8rem;
+}
+
+.order {
+	background: var(--surface-strong);
+	border: 1px solid var(--border);
+	border-radius: 0.8rem;
+	padding: 0.8rem;
+}
+
+header {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+}

@@ -1,0 +1,30 @@
+<section class="checkout-page">
+  <h2>Checkout</h2>
+
+  @if (pickup$ | async; as pickup) {
+    <div class="pickup">
+      <p>
+        <strong>Pickup:</strong> {{ pickup.date || 'Not set' }} at {{ pickup.time || 'Not set' }}
+      </p>
+      <a routerLink="/schedule-pickup">Edit pickup</a>
+    </div>
+  }
+
+  <label>
+    Full Name
+    <input type="text" [(ngModel)]="customerName" placeholder="Jane Doe" />
+  </label>
+
+  <label>
+    Email
+    <input type="email" [(ngModel)]="customerEmail" placeholder="you@email.com" />
+  </label>
+
+  @if (total$ | async; as total) {
+    <div class="total">
+      <strong>Order Total: ${{ total.toFixed(2) }}</strong>
+    </div>
+  }
+
+  <button type="button" (click)="placeOrder()">Place Order</button>
+</section>

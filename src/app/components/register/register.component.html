@@ -1,0 +1,25 @@
+<section class="auth-page">
+  <h2>Create Account</h2>
+
+  <label>
+    Name
+    <input type="text" [(ngModel)]="name" />
+  </label>
+
+  <label>
+    Email
+    <input type="email" [(ngModel)]="email" />
+  </label>
+
+  <label>
+    Password
+    <input type="password" [(ngModel)]="password" />
+  </label>
+
+  @if (error) {
+    <p class="error">{{ error }}</p>
+  }
+
+  <button type="button" (click)="register()">Register</button>
+  <p>Already registered? <a routerLink="/login">Login</a></p>
+</section>

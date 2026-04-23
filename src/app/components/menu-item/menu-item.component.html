@@ -1,0 +1,14 @@
+<article class="card">
+  <img class="product-image" [src]="item.imageUrl" [alt]="item.name" title="Ice cream product" />
+  <h3>{{ item.name }}</h3>
+  <p class="flavor">{{ item.flavor }}</p>
+  <p>{{ item.description }}</p>
+  <p class="price">${{ item.price.toFixed(2) }}</p>
+
+  <div class="actions">
+    <button type="button" [disabled]="!item.inStock" (click)="addToCart()">
+      {{ item.inStock ? 'Add To Cart' : 'Out Of Stock' }}
+    </button>
+    <a [routerLink]="['/customize', item.id]">Customize</a>
+  </div>
+</article>

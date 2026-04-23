@@ -1,0 +1,27 @@
+<section class="cart-page">
+  <h2>Your Cart</h2>
+
+  @if (cart$ | async; as items) {
+    <article class="cart-item" *ngFor="let entry of items; let i = index">
+      <h3>{{ entry.item.name }}</h3>
+      <p>Type: {{ entry.coneType }} | Toppings: {{ entry.toppings.join(', ') || 'none' }}</p>
+      <p>Subtotal: ${{ (entry.item.price * entry.quantity).toFixed(2) }}</p>
+
+      <div class="actions">
+        <button type="button" (click)="decrease(i, entry.quantity)">-</button>
+        <span>{{ entry.quantity }}</span>
+        <button type="button" (click)="increase(i, entry.quantity)">+</button>
+        <button type="button" (click)="remove(i)">Remove</button>
+      </div>
+    </article>
+
+    @if (items.length) {
+      <div class="summary">
+        <strong>Total: ${{ (total$ | async)?.toFixed(2) }}</strong>
+        <a routerLink="/schedule-pickup">Schedule Pickup</a>
+      </div>
+    } @else {
+      <p>Your cart is empty. <a routerLink="/menu">Pick a flavor</a>.</p>
+    }
+  }
+</section>

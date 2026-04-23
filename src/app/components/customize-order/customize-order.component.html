@@ -1,0 +1,44 @@
+@if (item) {
+  <section class="customizer">
+    <h2>Customize {{ item.name }}</h2>
+    <p class="stock" [class.out]="isUnavailable">
+      {{ isUnavailable ? 'Out of stock' : 'Available: ' + item.quantity }}
+    </p>
+
+    <label>
+      Quantity
+      <input type="number" min="1" [max]="item.quantity" [(ngModel)]="quantity" />
+    </label>
+
+    <label>
+      Cone Type
+      <select [(ngModel)]="coneType">
+        <option value="cup">Cup</option>
+        <option value="waffle">Waffle Cone</option>
+        <option value="sugar">Sugar Cone</option>
+      </select>
+    </label>
+
+    <fieldset>
+      <legend>Toppings</legend>
+      <label><input type="checkbox" [(ngModel)]="toppings.sprinkles" /> Sprinkles</label>
+      <label><input type="checkbox" [(ngModel)]="toppings.caramel" /> Caramel</label>
+      <label><input type="checkbox" [(ngModel)]="toppings.nuts" /> Nuts</label>
+      <label><input type="checkbox" [(ngModel)]="toppings.cherries" /> Cherries</label>
+    </fieldset>
+
+    <label>
+      Notes
+      <textarea [(ngModel)]="note" rows="3" placeholder="Anything special?"></textarea>
+    </label>
+
+    @if (error) {
+      <p class="error">{{ error }}</p>
+    }
+    <button type="button" [disabled]="isUnavailable" (click)="addCustomOrder()">
+      {{ isUnavailable ? 'Unavailable' : 'Add Customized Item' }}
+    </button>
+  </section>
+} @else {
+  <p>Menu item not found. <a routerLink="/menu">Back to menu</a></p>
+}

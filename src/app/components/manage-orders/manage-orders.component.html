@@ -1,0 +1,19 @@
+<section class="admin-page">
+  <h2>Manage Orders</h2>
+
+  <article class="order" *ngFor="let order of orders$ | async">
+    <header>
+      <h3>#{{ order.id }} - {{ order.customerName }}</h3>
+      <p>${{ order.total.toFixed(2) }}</p>
+    </header>
+
+    <p>Pickup: {{ order.pickupDate }} {{ order.pickupTime }}</p>
+
+    <label>
+      Status
+      <select [(ngModel)]="order.status" (ngModelChange)="updateStatus(order.id, $event)">
+        <option *ngFor="let status of statuses" [value]="status">{{ status }}</option>
+      </select>
+    </label>
+  </article>
+</section>

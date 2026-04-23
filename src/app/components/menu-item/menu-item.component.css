@@ -1,0 +1,58 @@
+.card {
+	border-radius: 1rem;
+	border: 1px solid var(--border);
+	padding: 0.65rem;
+	background: var(--surface-strong);
+	box-shadow: 0 12px 28px rgba(43, 85, 24, 0.09);
+	display: grid;
+	gap: 0.45rem;
+}
+
+.product-image {
+	width: 100%;
+	height: 168px;
+	object-fit: cover;
+	border-radius: 0.85rem;
+	display: block;
+}
+
+.flavor {
+	color: var(--teal-700);
+	font-size: 0.88rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	margin: 0;
+}
+
+.price {
+	font-weight: 700;
+	color: var(--forest-900);
+	margin: 0;
+	font-size: 1.08rem;
+}
+
+.actions {
+	display: flex;
+	gap: 0.5rem;
+	align-items: center;
+}
+
+.actions a {
+	display: inline-block;
+	padding: 0.5rem 0.75rem;
+	border-radius: 10px;
+	border: 1px solid rgba(77, 157, 31, 0.18);
+	color: var(--forest-900);
+	background: linear-gradient(145deg, var(--lime-50), #ffffff);
+	text-decoration: none;
+	font-weight: 600;
+}
+
+h3 {
+	margin: 0.2rem 0 0;
+}
+
+p {
+	margin: 0;
+}
