@@ -80,6 +80,7 @@ CORS_ALLOWED_ORIGINS = [origin.strip() for origin in cors_allowed_origins if ori
 
 FIREBASE_PROJECT_ID = os.getenv('FIREBASE_PROJECT_ID', 'icecream-web-3c99c')
 FIREBASE_CREDENTIALS_PATH = os.getenv('FIREBASE_CREDENTIALS_PATH', os.getenv('FIREBASE_CREDENTIALS', ''))
+OWNER_ADMIN_EMAIL = os.getenv('OWNER_ADMIN_EMAIL', 'mosesfrancis783@gmail.com').strip().lower()
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': ['api.authentication.FirebaseAuthentication'],

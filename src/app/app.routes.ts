@@ -12,6 +12,8 @@ import { MenuComponent } from './components/menu/menu.component';
 import { OrderConfirmationComponent } from './components/order-confirmation/order-confirmation.component';
 import { PickupSchedulerComponent } from './components/pickup-scheduler/pickup-scheduler.component';
 import { RegisterComponent } from './components/register/register.component';
+import { ManageUsersComponent } from './components/manage-users/manage-users.component';
+import { adminGuard } from './guards/admin.guard';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -24,8 +26,9 @@ export const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
   { path: 'forgot-password', component: ForgotPasswordComponent },
-  { path: 'admin', component: AdminDashboardComponent },
-  { path: 'admin/menu', component: ManageMenuComponent },
-  { path: 'admin/orders', component: ManageOrdersComponent },
+  { path: 'admin', component: AdminDashboardComponent, canActivate: [adminGuard] },
+  { path: 'admin/menu', component: ManageMenuComponent, canActivate: [adminGuard] },
+  { path: 'admin/orders', component: ManageOrdersComponent, canActivate: [adminGuard] },
+  { path: 'admin/users', component: ManageUsersComponent, canActivate: [adminGuard] },
   { path: '**', redirectTo: '' },
 ];

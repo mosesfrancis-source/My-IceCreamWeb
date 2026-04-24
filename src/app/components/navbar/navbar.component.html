@@ -16,7 +16,11 @@
       >)</a
     >
     <a routerLink="/schedule-pickup" routerLinkActive="active">Pickup</a>
-    <a routerLink="/admin" routerLinkActive="active">Admin</a>
+    @if (user$ | async; as navUser) {
+      @if (navUser.role === 'admin') {
+        <a routerLink="/admin" routerLinkActive="active">Admin</a>
+      }
+    }
   </nav>
 
   @if (user$ | async; as user) {

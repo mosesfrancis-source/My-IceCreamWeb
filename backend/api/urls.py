@@ -1,6 +1,8 @@
 from django.urls import path
 
 from .views import (
+    AdminUserDetailView,
+    AdminUserListCreateView,
     CartView,
     HealthView,
     MeView,
@@ -19,4 +21,6 @@ urlpatterns = [
     path('cart/', CartView.as_view(), name='cart'),
     path('orders/', OrderListCreateView.as_view(), name='orders'),
     path('orders/<int:order_id>/status/', OrderStatusView.as_view(), name='order-status'),
+    path('admin/users/', AdminUserListCreateView.as_view(), name='admin-users'),
+    path('admin/users/<str:uid>/', AdminUserDetailView.as_view(), name='admin-user-detail'),
 ]

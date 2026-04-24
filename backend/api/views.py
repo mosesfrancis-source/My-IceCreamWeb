@@ -1,7 +1,9 @@
 from rest_framework import permissions, response, status, views
+from firebase_admin import auth as firebase_auth
+from django.conf import settings
 
 from .models import Cart, MenuItem, Order
-from .permissions import IsFirebaseAdmin
+from .permissions import IsFirebaseAdmin, IsOwnerAdmin
 from .serializers import (
     CartSerializer,
     MenuItemSerializer,
@@ -138,3 +140,96 @@ class OrderStatusView(views.APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return response.Response(OrderSerializer(order).data)
+
+
+class AdminUserListCreateView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated, IsOwnerAdmin]
+
+    def get(self, request):
+        users = []
+        page = firebase_auth.list_users()
+
+        while page:
+            for user in page.users:
+                users.append(
+                    {
+                        'uid': user.uid,
+                        'email': user.email,
+                        'display_name': user.display_name,
+                        'disabled': user.disabled,
+                    }
+                )
+            page = page.get_next_page()
+
+        users.sort(key=lambda user: (user.get('email') or '').lower())
+        return response.Response(users)
+
+    def post(self, request):
+        email = str(request.data.get('email', '')).strip()
+        password = str(request.data.get('password', '')).strip()
+        display_name = str(request.data.get('display_name', '')).strip()
+
+        if not email or not password:
+            return response.Response(
+                {'detail': 'Email and password are required.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            user = firebase_auth.create_user(
+                email=email,
+                password=password,
+                display_name=display_name or None,
+            )
+            firebase_auth.set_custom_user_claims(user.uid, {'admin': False})
+        except Exception as exc:  # noqa: BLE001
+            return response.Response(
+                {'detail': f'Unable to create user: {exc}'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return response.Response(
+            {
+                'uid': user.uid,
+                'email': user.email,
+                'display_name': user.display_name,
+                'disabled': user.disabled,
+            },
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class AdminUserDetailView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated, IsOwnerAdmin]
+
+    def delete(self, request, uid: str):
+        owner_email = str(getattr(settings, 'OWNER_ADMIN_EMAIL', '')).strip().lower()
+        requester_email = str(getattr(request.user, 'email', '')).strip().lower()
+
+        try:
+            user = firebase_auth.get_user(uid)
+        except Exception as exc:  # noqa: BLE001
+            return response.Response({'detail': f'User not found: {exc}'}, status=status.HTTP_404_NOT_FOUND)
+
+        target_email = (user.email or '').strip().lower()
+        if target_email and owner_email and target_email == owner_email:
+            return response.Response(
+                {'detail': 'The owner admin account cannot be deleted.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if uid == getattr(request.user, 'uid', '') and requester_email == owner_email:
+            return response.Response(
+                {'detail': 'You cannot delete your own owner admin account.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            firebase_auth.delete_user(uid)
+        except Exception as exc:  # noqa: BLE001
+            return response.Response(
+                {'detail': f'Unable to delete user: {exc}'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return response.Response(status=status.HTTP_204_NO_CONTENT)

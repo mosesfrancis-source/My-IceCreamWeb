@@ -1,0 +1,44 @@
+<section class="admin-page">
+  <h2>Manage Users</h2>
+
+  <form class="user-form" (ngSubmit)="addUser()">
+    <label>
+      Display Name
+      <input type="text" [(ngModel)]="displayName" name="displayName" />
+    </label>
+
+    <label>
+      Email
+      <input type="email" [(ngModel)]="email" name="email" required />
+    </label>
+
+    <label>
+      Password
+      <input type="password" [(ngModel)]="password" name="password" required />
+    </label>
+
+    <button type="submit" [disabled]="isSubmitting">
+      {{ isSubmitting ? 'Creating...' : 'Create User' }}
+    </button>
+  </form>
+
+  @if (error) {
+    <p class="error">{{ error }}</p>
+  }
+
+  @if (isLoading) {
+    <p>Loading users...</p>
+  } @else {
+    <div class="users-list">
+      @for (user of users; track user.uid) {
+        <article class="user-card">
+          <div>
+            <h3>{{ user.display_name || 'No name' }}</h3>
+            <p>{{ user.email }}</p>
+          </div>
+          <button type="button" (click)="removeUser(user.uid)">Delete</button>
+        </article>
+      }
+    </div>
+  }
+</section>

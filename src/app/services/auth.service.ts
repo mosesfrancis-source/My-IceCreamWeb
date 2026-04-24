@@ -14,8 +14,11 @@ import {
 } from 'firebase/auth';
 import { User } from '../Models/user';
 import { firebaseConfig } from './firebase.config';
+import { ownerAdminEmail } from './admin.config';
 
 const SESSION_KEY = 'icecream-current-user';
+const AUTH_TIMEOUT_MS = 12000;
+const TOKEN_TIMEOUT_MS = 8000;
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -23,11 +26,21 @@ export class AuthService {
     getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
   private readonly auth: Auth = getAuth(this.app);
   private readonly currentUserSubject = new BehaviorSubject<User | null>(this.loadUser());
+  private readonly authReady = new Promise<void>((resolve) => {
+    this.resolveAuthReady = resolve;
+  });
+  private resolveAuthReady: (() => void) | null = null;
+  private authReadyResolved = false;
   readonly currentUser$ = this.currentUserSubject.asObservable();
 
   constructor() {
     onAuthStateChanged(this.auth, (firebaseUser) => {
       void this.syncCurrentUser(firebaseUser);
+
+      if (!this.authReadyResolved) {
+        this.authReadyResolved = true;
+        this.resolveAuthReady?.();
+      }
     });
   }
 
@@ -45,7 +58,11 @@ export class AuthService {
     }
 
     try {
-      const credential = await signInWithEmailAndPassword(this.auth, email, password);
+      const credential = await this.withTimeout(
+        signInWithEmailAndPassword(this.auth, email, password),
+        AUTH_TIMEOUT_MS,
+        'auth/timeout',
+      );
       const user = await this.syncCurrentUser(credential.user);
       return { ok: true, user: user ?? this.mapFirebaseUser(credential.user, {}) };
     } catch (error) {
@@ -107,6 +124,8 @@ export class AuthService {
   }
 
   async getIdToken(forceRefresh = false): Promise<string | null> {
+    await this.waitForAuthReady();
+
     const firebaseUser = this.auth.currentUser;
     if (!firebaseUser) {
       return null;
@@ -125,8 +144,20 @@ export class AuthService {
       return null;
     }
 
-    const tokenResult = await firebaseUser.getIdTokenResult();
-    const user = this.mapFirebaseUser(firebaseUser, tokenResult.claims as Record<string, unknown>);
+    let claims: Record<string, unknown> = {};
+
+    try {
+      const tokenResult = await this.withTimeout(
+        firebaseUser.getIdTokenResult(),
+        TOKEN_TIMEOUT_MS,
+        'auth/token-timeout',
+      );
+      claims = tokenResult.claims as Record<string, unknown>;
+    } catch {
+      claims = {};
+    }
+
+    const user = this.mapFirebaseUser(firebaseUser, claims);
     this.persistUser(user);
     return user;
   }
@@ -134,12 +165,14 @@ export class AuthService {
   private mapFirebaseUser(firebaseUser: FirebaseUser, claims: Record<string, unknown>): User {
     const displayName = firebaseUser.displayName?.trim();
     const emailName = firebaseUser.email?.split('@')[0]?.trim();
+    const normalizedEmail = (firebaseUser.email ?? '').toLowerCase();
+    const isOwner = normalizedEmail === ownerAdminEmail.toLowerCase();
 
     return {
       id: firebaseUser.uid,
       name: displayName || emailName || 'User',
       email: firebaseUser.email ?? '',
-      role: claims['admin'] === true ? 'admin' : 'customer',
+      role: claims['admin'] === true || isOwner ? 'admin' : 'customer',
     };
   }
 
@@ -192,6 +225,9 @@ export class AuthService {
         return 'A sign-in popup was blocked by the browser.';
       case 'auth/network-request-failed':
         return 'Network error. Check your connection and try again.';
+      case 'auth/timeout':
+      case 'auth/token-timeout':
+        return 'Sign-in timed out. Please check your connection and try again.';
       case 'auth/too-many-requests':
         return 'Too many attempts. Please wait a bit and try again.';
       default:
@@ -209,6 +245,32 @@ export class AuthService {
     }
 
     return error.code;
+  }
+
+  private async withTimeout<T>(promise: Promise<T>, timeoutMs: number, code: string): Promise<T> {
+    let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
+
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      timeoutHandle = setTimeout(() => {
+        reject({ code, message: 'Operation timed out.' });
+      }, timeoutMs);
+    });
+
+    try {
+      return await Promise.race([promise, timeoutPromise]);
+    } finally {
+      if (timeoutHandle) {
+        clearTimeout(timeoutHandle);
+      }
+    }
+  }
+
+  private async waitForAuthReady(): Promise<void> {
+    try {
+      await this.withTimeout(this.authReady, TOKEN_TIMEOUT_MS, 'auth/init-timeout');
+    } catch {
+      // If init times out, callers continue and handle missing token gracefully.
+    }
   }
 }
 
