@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { IceCreamItem } from '../Models/ice-cream-item';
+import { ApiClientService } from './api-client.service';
 
 const MENU_STORAGE_KEY = 'icecream-menu-items';
 
@@ -56,6 +57,10 @@ export class MenuService {
   private readonly menuSubject = new BehaviorSubject<IceCreamItem[]>(this.loadMenu());
   readonly menu$ = this.menuSubject.asObservable();
 
+  constructor(private readonly apiClient: ApiClientService) {
+    void this.refreshMenu();
+  }
+
   getMenu(): IceCreamItem[] {
     return this.menuSubject.value;
   }
@@ -65,51 +70,63 @@ export class MenuService {
   }
 
   addMenuItem(newItem: Omit<IceCreamItem, 'id'>): void {
-    const nextId = Math.max(0, ...this.menuSubject.value.map((item) => item.id)) + 1;
     const normalizedQuantity = Math.max(0, Math.trunc(newItem.quantity));
-    this.updateMenu([
-      ...this.menuSubject.value,
-      {
-        ...newItem,
-        id: nextId,
-        quantity: normalizedQuantity,
-        inStock: normalizedQuantity > 0,
-      },
-    ]);
+    const payload = {
+      name: newItem.name,
+      flavor: newItem.flavor,
+      description: newItem.description,
+      price: newItem.price,
+      image_url: newItem.imageUrl,
+      quantity: normalizedQuantity,
+      tags: newItem.tags,
+    };
+
+    void (async () => {
+      try {
+        await this.apiClient.post('/menu/', payload, true);
+        await this.refreshMenu();
+      } catch {
+        // Keep the current state if the backend request fails.
+      }
+    })();
   }
 
   updateMenuItem(updatedItem: IceCreamItem): void {
-    const normalizedQuantity = Math.max(0, Math.trunc(updatedItem.quantity));
-    this.updateMenu(
-      this.menuSubject.value.map((item) =>
-        item.id === updatedItem.id
-          ? {
-              ...updatedItem,
-              quantity: normalizedQuantity,
-              inStock: normalizedQuantity > 0,
-            }
-          : item,
-      ),
-    );
+    this.updateItemQuantity(updatedItem.id, updatedItem.quantity);
   }
 
   updateItemQuantity(id: number, quantity: number): void {
     const normalizedQuantity = Math.max(0, Math.trunc(quantity));
-    this.updateMenu(
-      this.menuSubject.value.map((item) =>
-        item.id === id
-          ? {
-              ...item,
-              quantity: normalizedQuantity,
-              inStock: normalizedQuantity > 0,
-            }
-          : item,
-      ),
-    );
+
+    void (async () => {
+      try {
+        await this.apiClient.patch(`/menu/${id}/`, { quantity: normalizedQuantity }, true);
+        await this.refreshMenu();
+      } catch {
+        // Keep the current state if the backend request fails.
+      }
+    })();
   }
 
   removeMenuItem(id: number): void {
-    this.updateMenu(this.menuSubject.value.filter((item) => item.id !== id));
+    void (async () => {
+      try {
+        await this.apiClient.delete(`/menu/${id}/`, true);
+        await this.refreshMenu();
+      } catch {
+        // Keep the current state if the backend request fails.
+      }
+    })();
+  }
+
+  async refreshMenu(): Promise<void> {
+    try {
+      const items = await this.apiClient.get<MenuApiItem[]>('/menu/');
+      const mapped = items.map((item) => this.mapApiItem(item));
+      this.updateMenu(mapped);
+    } catch {
+      // Keep local fallback state if backend is offline.
+    }
   }
 
   private updateMenu(items: IceCreamItem[]): void {
@@ -144,4 +161,31 @@ export class MenuService {
       return STARTER_MENU;
     }
   }
+
+  private mapApiItem(item: MenuApiItem): IceCreamItem {
+    const quantity = Math.max(0, Math.trunc(Number(item.quantity ?? 0)));
+
+    return {
+      id: Number(item.id),
+      name: item.name,
+      flavor: item.flavor,
+      description: item.description,
+      price: Number(item.price),
+      imageUrl: item.image_url,
+      quantity,
+      inStock: quantity > 0,
+      tags: Array.isArray(item.tags) ? item.tags : [],
+    };
+  }
+}
+
+interface MenuApiItem {
+  id: number;
+  name: string;
+  flavor: string;
+  description: string;
+  price: number;
+  image_url: string;
+  quantity: number;
+  tags: string[];
 }

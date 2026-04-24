@@ -18,8 +18,13 @@
 
   @if (error) {
     <p class="error">{{ error }}</p>
+    @if (errorCode) {
+      <p class="error-code">Error code: {{ errorCode }}</p>
+    }
   }
 
-  <button type="button" (click)="register()">Register</button>
+  <button type="button" (click)="register()" [disabled]="isSubmitting">
+    {{ isSubmitting ? 'Creating account...' : 'Register' }}
+  </button>
   <p>Already registered? <a routerLink="/login">Login</a></p>
 </section>

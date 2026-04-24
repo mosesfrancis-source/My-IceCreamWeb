@@ -12,6 +12,11 @@ export class AdminService {
   readonly menu$ = this.menuService.menu$;
   readonly orders$ = this.orderService.orders$;
 
+  constructor() {
+    void this.menuService.refreshMenu();
+    void this.orderService.refreshOrders();
+  }
+
   createMenuItem(payload: Omit<IceCreamItem, 'id'>): void {
     this.menuService.addMenuItem(payload);
   }

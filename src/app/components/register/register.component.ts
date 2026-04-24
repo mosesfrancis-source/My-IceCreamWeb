@@ -16,19 +16,34 @@ export class RegisterComponent {
   email = '';
   password = '';
   error = '';
+  errorCode = '';
+  isSubmitting = false;
 
   constructor(
     private readonly authService: AuthService,
     private readonly router: Router,
   ) {}
 
-  register(): void {
-    const ok = this.authService.register(this.name, this.email, this.password);
-    if (!ok) {
-      this.error = 'Please complete all required fields.';
-      return;
-    }
+  async register(): Promise<void> {
+    this.error = '';
+    this.errorCode = '';
+    this.isSubmitting = true;
 
-    this.router.navigate(['/menu']);
+    try {
+      const result = await this.authService.register(
+        this.name.trim(),
+        this.email.trim(),
+        this.password,
+      );
+      if (!result.ok || !result.user) {
+        this.error = result.errorMessage ?? 'Please complete all required fields and try again.';
+        this.errorCode = result.errorCode ?? '';
+        return;
+      }
+
+      await this.router.navigate(['/menu']);
+    } finally {
+      this.isSubmitting = false;
+    }
   }
 }

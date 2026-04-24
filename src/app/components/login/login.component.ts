@@ -15,24 +15,30 @@ export class LoginComponent {
   email = '';
   password = '';
   error = '';
+  errorCode = '';
+  isSubmitting = false;
 
   constructor(
     private readonly authService: AuthService,
     private readonly router: Router,
   ) {}
 
-  login(): void {
-    const ok = this.authService.login(this.email, this.password);
-    if (!ok) {
-      this.error = 'Please provide a valid email and password.';
-      return;
-    }
+  async login(): Promise<void> {
+    this.error = '';
+    this.errorCode = '';
+    this.isSubmitting = true;
 
-    if (this.authService.isAdmin()) {
-      this.router.navigate(['/admin']);
-      return;
-    }
+    try {
+      const result = await this.authService.login(this.email.trim(), this.password);
+      if (!result.ok || !result.user) {
+        this.error = result.errorMessage ?? 'Unable to sign in. Check your email and password.';
+        this.errorCode = result.errorCode ?? '';
+        return;
+      }
 
-    this.router.navigate(['/menu']);
+      await this.router.navigate([result.user.role === 'admin' ? '/admin' : '/menu']);
+    } finally {
+      this.isSubmitting = false;
+    }
   }
 }

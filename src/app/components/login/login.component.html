@@ -13,8 +13,13 @@
 
   @if (error) {
     <p class="error">{{ error }}</p>
+    @if (errorCode) {
+      <p class="error-code">Error code: {{ errorCode }}</p>
+    }
   }
 
-  <button type="button" (click)="login()">Login</button>
+  <button type="button" (click)="login()" [disabled]="isSubmitting">
+    {{ isSubmitting ? 'Signing in...' : 'Login' }}
+  </button>
   <p><a routerLink="/forgot-password">Forgot password?</a></p>
 </section>

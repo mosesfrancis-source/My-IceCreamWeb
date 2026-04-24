@@ -22,6 +22,6 @@ export class NavbarComponent {
   readonly itemCount$ = this.cartService.itemCount$;
 
   logout(): void {
-    this.authService.logout();
+    void this.authService.logout();
   }
 }

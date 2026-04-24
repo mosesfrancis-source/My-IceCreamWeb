@@ -26,5 +26,14 @@
     </div>
   }
 
-  <button type="button" (click)="placeOrder()">Place Order</button>
+  @if (error) {
+    <p class="error">{{ error }}</p>
+    @if (errorCode) {
+      <p class="error-code">Error code: {{ errorCode }}</p>
+    }
+  }
+
+  <button type="button" (click)="placeOrder()" [disabled]="isSubmitting">
+    {{ isSubmitting ? 'Placing order...' : 'Place Order' }}
+  </button>
 </section>
