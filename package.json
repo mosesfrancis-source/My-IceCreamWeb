@@ -6,6 +6,7 @@
     "dev": "ng serve",
     "start": "ng serve",
     "build": "ng build",
+    "deploy": "ng deploy --base-href=/My-IceCreamWeb/ --dir=dist/my-icecreamweb/browser",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },

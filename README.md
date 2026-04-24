@@ -96,6 +96,16 @@ ng build
 
 This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
 
+## GitHub Pages Deploy
+
+For this repository, deploy with the configured script:
+
+```bash
+npm run deploy
+```
+
+This uses the correct base href for the repo path (`/My-IceCreamWeb/`).
+
 ## Running unit tests
 
 To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
