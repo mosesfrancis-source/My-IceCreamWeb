@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-label="Vanilla Dream ice cream scoop">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#fff0cf"/>
+      <stop offset="1" stop-color="#ffe0a2"/>
+    </linearGradient>
+    <radialGradient id="scoop" cx="45%" cy="35%" r="60%">
+      <stop offset="0" stop-color="#fffdf2"/>
+      <stop offset="1" stop-color="#f6ddb1"/>
+    </radialGradient>
+  </defs>
+  <rect width="800" height="500" fill="url(#bg)" rx="28"/>
+  <ellipse cx="400" cy="410" rx="210" ry="42" fill="#d4b180" opacity="0.35"/>
+  <polygon points="400,390 290,170 510,170" fill="#d49a4a"/>
+  <ellipse cx="400" cy="165" rx="128" ry="105" fill="url(#scoop)"/>
+  <circle cx="350" cy="130" r="16" fill="#ffffff" opacity="0.55"/>
+  <circle cx="424" cy="112" r="11" fill="#ffffff" opacity="0.48"/>
+</svg>
