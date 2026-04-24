@@ -22,6 +22,7 @@ export class CheckoutComponent {
   error = '';
   errorCode = '';
   isSubmitting = false;
+  private submitWatchdogId: number | undefined;
 
   readonly cart$ = this.cartService.cart$;
   readonly total$ = this.cartService.total$;
@@ -37,6 +38,12 @@ export class CheckoutComponent {
     }
 
     this.isSubmitting = true;
+    this.submitWatchdogId = window.setTimeout(() => {
+      this.isSubmitting = false;
+      this.errorCode = 'checkout-watchdog-timeout';
+      this.error =
+        'Order request took too long. Please check Firestore rules/network and try again.';
+    }, 15000);
 
     try {
       const result = await this.withTimeout(
@@ -56,8 +63,12 @@ export class CheckoutComponent {
       }
 
       this.cartService.clearCart();
-      await this.router.navigate(['/order-confirmation']);
+      void this.router.navigate(['/order-confirmation']);
     } finally {
+      if (typeof this.submitWatchdogId !== 'undefined') {
+        window.clearTimeout(this.submitWatchdogId);
+        this.submitWatchdogId = undefined;
+      }
       this.isSubmitting = false;
     }
   }
