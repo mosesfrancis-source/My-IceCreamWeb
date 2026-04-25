@@ -15,6 +15,9 @@
       >Cart (<span>{{ itemCount$ | async }}</span
       >)</a
     >
+    @if (user$ | async) {
+      <a routerLink="/order-status" routerLinkActive="active">Track Order</a>
+    }
     <a routerLink="/schedule-pickup" routerLinkActive="active">Pickup</a>
     @if (user$ | async; as navUser) {
       @if (navUser.role === 'admin') {

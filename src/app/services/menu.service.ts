@@ -123,6 +123,15 @@ export class MenuService {
     try {
       const items = await this.apiClient.get<MenuApiItem[]>('/menu/');
       const mapped = items.map((item) => this.mapApiItem(item));
+
+      if (mapped.length === 0) {
+        // Avoid wiping the UI when backend is empty/unseeded.
+        if (this.menuSubject.value.length === 0) {
+          this.updateMenu(STARTER_MENU);
+        }
+        return;
+      }
+
       this.updateMenu(mapped);
     } catch {
       // Keep local fallback state if backend is offline.

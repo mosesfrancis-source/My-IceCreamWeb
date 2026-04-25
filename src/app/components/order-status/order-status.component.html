@@ -1,0 +1,28 @@
+<section class="status-page">
+  <header class="status-header">
+    <h2>Track Your Orders</h2>
+    <button type="button" (click)="refreshStatuses()">Refresh</button>
+  </header>
+
+  @if (orders$ | async; as orders) {
+    @if (orders.length === 0) {
+      <p>No orders found yet. <a routerLink="/menu">Start an order</a>.</p>
+    } @else {
+      <div class="status-list">
+        @for (order of orders; track order.id) {
+          <article class="status-card">
+            <div>
+              <p>
+                <strong>Order #{{ order.id }}</strong>
+              </p>
+              <p>Placed: {{ order.createdAt | date: 'medium' }}</p>
+              <p>Pickup: {{ order.pickupDate }} at {{ order.pickupTime }}</p>
+              <p>Total: ${{ order.total.toFixed(2) }}</p>
+            </div>
+            <span class="status-badge">{{ order.status }}</span>
+          </article>
+        }
+      </div>
+    }
+  }
+</section>

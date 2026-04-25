@@ -2,9 +2,39 @@
   <section class="confirmation">
     <h2>Order Confirmed</h2>
     <p>Order #{{ order.id }} has been placed successfully.</p>
+    <p class="status-row">
+      Current status:
+      <strong class="status-badge">{{ order.status }}</strong>
+    </p>
     <p>Total: ${{ order.total.toFixed(2) }}</p>
     <p>Pickup: {{ order.pickupDate }} at {{ order.pickupTime }}</p>
+    <button type="button" class="refresh-btn" (click)="refreshStatuses()">Refresh Status</button>
     <a routerLink="/menu">Back to Menu</a>
+  </section>
+
+  <section class="confirmation orders-history">
+    <h3>Your Recent Orders</h3>
+    @if (orders$ | async; as orders) {
+      @if (orders.length === 0) {
+        <p>No orders found.</p>
+      } @else {
+        <div class="orders-list">
+          @for (savedOrder of orders; track savedOrder.id) {
+            <article class="order-row">
+              <div>
+                <p>
+                  <strong>#{{ savedOrder.id }}</strong>
+                </p>
+                <p>Pickup: {{ savedOrder.pickupDate }} {{ savedOrder.pickupTime }}</p>
+              </div>
+              <div class="order-status">
+                <span class="status-badge">{{ savedOrder.status }}</span>
+              </div>
+            </article>
+          }
+        </div>
+      }
+    }
   </section>
 } @else {
   <p>No recent order found. <a routerLink="/menu">Create a new order</a>.</p>

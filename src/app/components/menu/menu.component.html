@@ -9,12 +9,16 @@
   />
 
   @if (filteredMenu$ | async; as items) {
-    <div class="grid">
-      <app-menu-item
-        *ngFor="let item of items"
-        [item]="item"
-        (add)="addToCart($event)"
-      ></app-menu-item>
-    </div>
+    @if (items.length === 0) {
+      <p class="empty-state">No menu items are available right now. Please check back soon.</p>
+    } @else {
+      <div class="grid">
+        <app-menu-item
+          *ngFor="let item of items"
+          [item]="item"
+          (add)="addToCart($event)"
+        ></app-menu-item>
+      </div>
+    }
   }
 </section>

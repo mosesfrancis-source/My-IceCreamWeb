@@ -15,6 +15,7 @@ import { firebaseConfig } from './firebase.config';
 
 const ORDERS_STORAGE_KEY = 'icecream-orders';
 const VALID_STATUSES: Order['status'][] = ['received', 'preparing', 'ready', 'completed'];
+const ORDERS_REFRESH_MS = 8000;
 
 @Injectable({ providedIn: 'root' })
 export class OrderService {
@@ -35,9 +36,11 @@ export class OrderService {
     time: '',
   });
   readonly pickup$ = this.pickupSubject.asObservable();
+  private refreshTimerId: ReturnType<typeof setInterval> | null = null;
 
   constructor(private readonly apiClient: ApiClientService) {
     void this.refreshOrders();
+    this.startAutoRefresh();
   }
 
   setPickup(date: string, time: string): void {
@@ -74,25 +77,46 @@ export class OrderService {
     };
 
     try {
-      const fallbackOrder = await this.withTimeout(
-        this.createFirestoreOrder(payload, pickup),
-        8000,
-        'firestore-order-timeout',
+      const savedOrder = await this.withTimeout(
+        this.createBackendOrder(body),
+        10000,
+        'backend-order-timeout',
       );
 
-      const nextOrders = [fallbackOrder, ...this.ordersSubject.value];
+      const nextOrders = [
+        savedOrder,
+        ...this.ordersSubject.value.filter((order) => order.id !== savedOrder.id),
+      ];
       this.persistOrders(nextOrders);
-      this.latestOrderSubject.next(fallbackOrder);
+      this.latestOrderSubject.next(savedOrder);
 
-      void this.syncOrderToBackend(body, fallbackOrder);
+      // Firestore is now a mirror only; backend remains the source of truth.
+      void this.mirrorOrderToFirestore(payload, pickup, savedOrder);
 
-      return { ok: true, order: fallbackOrder };
-    } catch (firestoreError) {
-      return {
-        ok: false,
-        errorCode: this.getOrderErrorCode(firestoreError),
-        errorMessage: this.getOrderErrorMessage(firestoreError),
-      };
+      return { ok: true, order: savedOrder };
+    } catch (error) {
+      try {
+        const fallbackOrder = await this.withTimeout(
+          this.createFirestoreFallbackOrder(payload, pickup),
+          8000,
+          'firestore-fallback-timeout',
+        );
+
+        const nextOrders = [fallbackOrder, ...this.ordersSubject.value];
+        this.persistOrders(nextOrders);
+        this.latestOrderSubject.next(fallbackOrder);
+
+        return { ok: true, order: fallbackOrder };
+      } catch (fallbackError) {
+        const primaryCode = this.getOrderErrorCode(error);
+        const fallbackCode = this.getOrderErrorCode(fallbackError);
+
+        return {
+          ok: false,
+          errorCode: `${primaryCode} | ${fallbackCode}`,
+          errorMessage: `Order save failed on backend and fallback. ${this.describeUnknownError(error)}.`,
+        };
+      }
     }
   }
 
@@ -129,6 +153,16 @@ export class OrderService {
     } catch {
       // Keep local state if backend is offline.
     }
+  }
+
+  private startAutoRefresh(): void {
+    if (this.refreshTimerId !== null) {
+      return;
+    }
+
+    this.refreshTimerId = setInterval(() => {
+      void this.refreshOrders();
+    }, ORDERS_REFRESH_MS);
   }
 
   private loadOrders(): Order[] {
@@ -193,7 +227,54 @@ export class OrderService {
     };
   }
 
-  private async createFirestoreOrder(
+  private async createBackendOrder(body: unknown): Promise<Order> {
+    const created = await this.apiClient.post<OrderApi>('/orders/', body, true);
+    return this.mapOrder(created);
+  }
+
+  private async mirrorOrderToFirestore(
+    payload: { customerName: string; customerEmail: string; items: CartItem[] },
+    pickup: { date: string; time: string },
+    savedOrder: Order,
+  ): Promise<void> {
+    const total = savedOrder.total;
+
+    const firestorePayload = {
+      backendOrderId: savedOrder.id,
+      customerName: payload.customerName,
+      customerEmail: payload.customerEmail,
+      pickupDate: pickup.date,
+      pickupTime: pickup.time,
+      status: savedOrder.status,
+      total,
+      createdAt: savedOrder.createdAt,
+      items: payload.items.map((item) => ({
+        menuItemId: item.item.id,
+        itemName: item.item.name,
+        flavor: item.item.flavor,
+        imageUrl: item.item.imageUrl,
+        unitPrice: item.item.price,
+        quantity: item.quantity,
+        coneType: item.coneType,
+        toppings: item.toppings,
+        note: item.note ?? '',
+      })),
+      source: 'web-checkout',
+      createdAtServer: serverTimestamp(),
+    };
+
+    try {
+      await this.withTimeout(
+        addDoc(collection(this.firestore, 'orders'), firestorePayload),
+        8000,
+        'firestore-mirror-timeout',
+      );
+    } catch {
+      // Keep backend order success even if Firestore mirror write fails.
+    }
+  }
+
+  private async createFirestoreFallbackOrder(
     payload: { customerName: string; customerEmail: string; items: CartItem[] },
     pickup: { date: string; time: string },
   ): Promise<Order> {
@@ -219,7 +300,7 @@ export class OrderService {
         toppings: item.toppings,
         note: item.note ?? '',
       })),
-      source: 'web-checkout',
+      source: 'web-checkout-fallback',
       createdAtServer: serverTimestamp(),
     };
 
@@ -238,22 +319,15 @@ export class OrderService {
     };
   }
 
-  private async syncOrderToBackend(body: unknown, fallbackOrder: Order): Promise<void> {
-    try {
-      await this.withTimeout(
-        this.apiClient.post('/orders/', body, true),
-        8000,
-        'backend-order-timeout',
-      );
-      await this.refreshOrders();
-    } catch {
-      // The Firestore order is already saved; backend sync is best-effort only.
-    }
-  }
+  private getOrderErrorMessage(error: unknown): string {
+    const errorCode = this.getOrderErrorCode(error);
+    const details = this.describeUnknownError(error);
 
-  private getOrderErrorMessage(firestoreError: unknown): string {
-    const firestoreMessage = this.describeUnknownError(firestoreError);
-    return `Order save failed in Firestore (default database). ${firestoreMessage}.`;
+    if (errorCode === 'backend-order-timeout') {
+      return 'Order was not saved to backend in time. Please retry.';
+    }
+
+    return `Order save failed on backend. ${details}.`;
   }
 
   private getOrderErrorCode(error: unknown): string {

@@ -10,6 +10,7 @@ import { ManageMenuComponent } from './components/manage-menu/manage-menu.compon
 import { ManageOrdersComponent } from './components/manage-orders/manage-orders.component';
 import { MenuComponent } from './components/menu/menu.component';
 import { OrderConfirmationComponent } from './components/order-confirmation/order-confirmation.component';
+import { OrderStatusComponent } from './components/order-status/order-status.component';
 import { PickupSchedulerComponent } from './components/pickup-scheduler/pickup-scheduler.component';
 import { RegisterComponent } from './components/register/register.component';
 import { ManageUsersComponent } from './components/manage-users/manage-users.component';
@@ -23,6 +24,7 @@ export const routes: Routes = [
   { path: 'schedule-pickup', component: PickupSchedulerComponent },
   { path: 'checkout', component: CheckoutComponent },
   { path: 'order-confirmation', component: OrderConfirmationComponent },
+  { path: 'order-status', component: OrderStatusComponent },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
   { path: 'forgot-password', component: ForgotPasswordComponent },

@@ -4,4 +4,42 @@
 	border-radius: 1rem;
 	padding: 1.25rem;
 	background: var(--surface-strong);
+	margin-bottom: 1rem;
+}
+
+.status-row {
+	display: flex;
+	gap: 0.5rem;
+	align-items: center;
+}
+
+.status-badge {
+	text-transform: capitalize;
+	padding: 0.15rem 0.5rem;
+	border-radius: 999px;
+	border: 1px solid var(--border);
+	background: #f1f6ea;
+}
+
+.refresh-btn {
+	margin: 0.5rem 0 0.9rem;
+}
+
+.orders-history {
+	max-width: 720px;
+}
+
+.orders-list {
+	display: grid;
+	gap: 0.7rem;
+}
+
+.order-row {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 0.75rem;
+	border: 1px solid var(--border);
+	border-radius: 0.75rem;
+	background: #ffffff;
 }
